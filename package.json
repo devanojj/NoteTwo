@@ -10,10 +10,5 @@
   "author": "",
   "license": "ISC",
   "private": true,
-  "packageManager": "pnpm@10.12.1",
-  "workspaces": [
-    "web",
-    "desktop",
-    "mobile"
-  ]
+  "packageManager": "pnpm@10.12.1"
 }
