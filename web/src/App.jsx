@@ -18,7 +18,10 @@ function App() {
 
 
     return (
-    <textarea
+    <div>
+      <h1>Hello from React!</h1>
+      <button onClick={() => alert('Clicked!')}>Click me</button>
+      <textarea
       value={text}
       onChange={(e) => setText(e.target.value)}
       
@@ -35,6 +38,7 @@ function App() {
         boxSizing: 'border-box', // Ensures padding doesn't shrink the box
       }}
       />
+    </div>
   );
 }
 

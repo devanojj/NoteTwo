@@ -1,3 +1,4 @@
+// No longer needed. The renderer is now your built React app.
 export function setupCounter(element: HTMLButtonElement) {
   let counter = 0
   const setCounter = (count: number) => {
