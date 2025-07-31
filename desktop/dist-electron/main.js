@@ -1,54 +1,39 @@
-import { app, BrowserWindow } from "electron";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-process.env.APP_ROOT = path.join(__dirname, "..");
-const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
-const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
-const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
-function createWindow() {
-  win = new BrowserWindow({
+import { app as t, BrowserWindow as r } from "electron";
+import { fileURLToPath as a } from "node:url";
+import o from "node:path";
+const l = o.dirname(a(import.meta.url));
+process.env.APP_ROOT = o.join(l, "..");
+const n = process.env.VITE_DEV_SERVER_URL, m = o.join(process.env.APP_ROOT, "dist-electron"), s = o.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = n ? o.join(process.env.APP_ROOT, "public") : s;
+let e;
+function c() {
+  if (e = new r({
     width: 1200,
     height: 800,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: o.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs"),
-      nodeIntegration: false,
-      contextIsolation: true
+      preload: o.join(l, "preload.mjs"),
+      nodeIntegration: !1,
+      contextIsolation: !0
     }
-  });
-  if (process.env.OPEN_DEVTOOLS === "true") {
-    win.webContents.openDevTools();
-  }
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
-  if (VITE_DEV_SERVER_URL) {
-    console.log("Loading from dev server:", VITE_DEV_SERVER_URL);
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    const htmlPath = path.join(RENDERER_DIST, "index.html");
-    console.log("Loading from file:", htmlPath);
-    console.log("RENDERER_DIST:", RENDERER_DIST);
-    win.loadFile(htmlPath);
+  }), process.env.OPEN_DEVTOOLS === "true" && e.webContents.openDevTools(), e.webContents.on("did-finish-load", () => {
+    e == null || e.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  }), n)
+    console.log("Loading from dev server:", n), e.loadURL(n);
+  else {
+    const i = o.join(s, "index.html");
+    console.log("Loading from file:", i), console.log("RENDERER_DIST:", s), e.loadFile(i);
   }
 }
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-  }
+t.on("window-all-closed", () => {
+  process.platform !== "darwin" && (t.quit(), e = null);
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+t.on("activate", () => {
+  r.getAllWindows().length === 0 && c();
 });
-app.whenReady().then(createWindow);
+t.whenReady().then(c);
 export {
-  MAIN_DIST,
-  RENDERER_DIST,
-  VITE_DEV_SERVER_URL
+  m as MAIN_DIST,
+  s as RENDERER_DIST,
+  n as VITE_DEV_SERVER_URL
 };
