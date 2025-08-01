@@ -19,45 +19,38 @@ function App() {
     localStorage.setItem('note', text);
   }, [text]);
 
-  // Initialize Firebase via REST API
+  // Initialize backend connection
   useEffect(() => {
-    const initFirebase = async () => {
+    const initBackend = async () => {
       try {
-        console.log('Starting Firebase REST API test...');
+        console.log('Testing backend connection...');
         
-        // Test Firebase REST API directly
-        const testUrl = 'https://notetwo-fa8e0-default-rtdb.firebaseio.com/test.json';
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
         
-        // Try a simple GET request
-        console.log('Testing Firebase REST API read...');
-        const response = await fetch(testUrl);
+        // Test backend connection
+        console.log('Testing backend API...');
+        const response = await fetch(`${API_BASE_URL}/test`);
         const data = await response.json();
-        console.log('Firebase REST API read successful, data:', data);
         
-        // Try a simple PUT request
-        console.log('Testing Firebase REST API write...');
-        const writeResponse = await fetch(testUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: 'Firebase REST API connected',
-            timestamp: Date.now()
-          })
-        });
-        
-        if (writeResponse.ok) {
-          console.log('Firebase REST API write successful');
+        if (data.success) {
+          console.log('Backend API connected successfully:', data);
           setFirebaseReady(true);
           
-          // Set up polling for real-time updates (since REST API doesn't have real-time)
+          // Load existing notes from backend
+          const notesResponse = await fetch(`${API_BASE_URL}/notes`);
+          const notesData = await notesResponse.json();
+          
+          if (notesData.success && notesData.data && notesData.data.content) {
+            setText(notesData.data.content);
+          }
+          
+          // Set up polling for real-time updates
           const pollForUpdates = async () => {
             try {
-              const notesResponse = await fetch('https://notetwo-fa8e0-default-rtdb.firebaseio.com/notes.json');
+              const notesResponse = await fetch(`${API_BASE_URL}/notes`);
               const notesData = await notesResponse.json();
-              if (notesData && notesData.content && notesData.content !== text) {
-                setText(notesData.content);
+              if (notesData.success && notesData.data && notesData.data.content && notesData.data.content !== text) {
+                setText(notesData.data.content);
               }
             } catch (err) {
               console.error('Error polling for updates:', err);
@@ -68,47 +61,49 @@ function App() {
           const pollInterval = setInterval(pollForUpdates, 2000);
           return () => clearInterval(pollInterval);
         } else {
-          throw new Error(`Firebase REST API write failed: ${writeResponse.status}`);
+          throw new Error(`Backend API test failed: ${data.error}`);
         }
         
       } catch (err) {
-        console.error('Firebase REST API error:', err);
+        console.error('Backend API error:', err);
         setError(err.message);
       }
     };
 
-    initFirebase();
+    initBackend();
   }, []); // Only run once on mount
 
-  // Sync to Firebase REST API when text changes (after Firebase is ready)
+  // Sync to backend API when text changes (after backend is ready)
   useEffect(() => {
     if (!firebaseReady || text === undefined) return;
 
-    const syncToFirebase = async () => {
+    const syncToBackend = async () => {
       try {
-        console.log('Syncing to Firebase via REST API...');
-        const response = await fetch('https://notetwo-fa8e0-default-rtdb.firebaseio.com/notes.json', {
+        console.log('Syncing to backend API...');
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+        
+        const response = await fetch(`${API_BASE_URL}/notes`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            content: text,
-            lastUpdated: Date.now()
+            content: text
           })
         });
         
-        if (!response.ok) {
-          throw new Error(`Sync failed: ${response.status}`);
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(`Sync failed: ${data.error}`);
         }
         console.log('Sync successful');
       } catch (err) {
-        console.error('Error syncing to Firebase:', err);
+        console.error('Error syncing to backend:', err);
       }
     };
 
     // Debounce the sync to avoid too many writes
-    const timeoutId = setTimeout(syncToFirebase, 500);
+    const timeoutId = setTimeout(syncToBackend, 500);
     return () => clearTimeout(timeoutId);
   }, [text, firebaseReady]);
 
@@ -121,7 +116,7 @@ function App() {
           background: '#ffe6e6',
           borderBottom: '1px solid #ffcccc'
         }}>
-          Firebase Error: {error}
+          Backend Error: {error}
         </div>
       )}
       
@@ -133,7 +128,7 @@ function App() {
           borderBottom: '1px solid #ccffcc',
           fontSize: '0.875rem'
         }}>
-          ✓ Firebase connected - Notes are syncing in real-time
+          ✓ Backend connected - Notes are syncing in real-time
         </div>
       )}
       
