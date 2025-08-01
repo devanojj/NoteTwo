@@ -25,3 +25,10 @@ dist-ssr
 
 # Firebase config
 shared/firebase/config.js
+
+# Desktop build artifacts
+desktop/release/
+desktop/dist/
+desktop/out/
+*.dmg
+*.app
